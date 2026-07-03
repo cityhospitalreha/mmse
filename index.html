@@ -18,6 +18,11 @@
 <!-- ファビコン -->
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/icon-32.png">
 <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
+<script>
+try{
+  if(localStorage.getItem('mmse_theme')==='dark') document.documentElement.setAttribute('data-theme','dark');
+}catch(e){}
+</script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
@@ -26,10 +31,30 @@
   --green:#15803D;--green-lt:#F0FDF4;
   --amber:#B45309;--amber-lt:#FFFBEB;
   --red:#B91C1C;--red-lt:#FEF2F2;
+  --calc-ok-bg:#DCFCE7;--calc-ok-bd:#16A34A;
+  --calc-ng-bg:#FEE2E2;--calc-ng-bd:#DC2626;
+  --ok-key-active:#1558c0;
+}
+:root[data-theme="dark"]{
+  --bg:#17181C;--white:#212227;--ink:#EDEDF0;--muted:#8B8D93;--line:#33343A;
+  --accent:#5B9BFF;--on:#5B9BFF;--on-lt:#1B2A42;
+  --green:#4ADE80;--green-lt:#123321;
+  --amber:#FBBF24;--amber-lt:#3A2A0A;
+  --red:#F87171;--red-lt:#3A1414;
+  --calc-ok-bg:#123321;--calc-ok-bd:#22C55E;
+  --calc-ng-bg:#3A1414;--calc-ng-bd:#F87171;
+  --ok-key-active:#8AB4FF;
 }
 html,body{height:100%;background:var(--bg);font-family:"Hiragino Kaku Gothic ProN","Hiragino Sans","Yu Gothic UI",sans-serif;color:var(--ink);}
 .screen{display:none;flex-direction:column;align-items:center;min-height:100%;padding-bottom:1rem;}
 .screen.active{display:flex;}
+.theme-btn{
+  position:fixed;top:.7rem;right:.7rem;z-index:50;
+  width:34px;height:34px;border-radius:50%;
+  background:var(--white);border:1.5px solid var(--line);color:var(--ink);
+  font-size:15px;display:flex;align-items:center;justify-content:center;cursor:pointer;
+}
+.theme-btn:active{opacity:.6;}
 
 /* HOME */
 #home{padding:0 1rem;}
@@ -141,11 +166,11 @@ html,body{height:100%;background:var(--bg);font-family:"Hiragino Kaku Gothic Pro
   user-select:none;
 }
 .calc-display.active{border-color:var(--accent);color:var(--ink);}
-.calc-display.ok{background:#DCFCE7;border-color:#16A34A;color:#15803D;}
-.calc-display.ng{background:#FEE2E2;border-color:#DC2626;color:#B91C1C;}
+.calc-display.ok{background:var(--calc-ok-bg);border-color:var(--calc-ok-bd);color:var(--green);}
+.calc-display.ng{background:var(--calc-ng-bg);border-color:var(--calc-ng-bd);color:var(--red);}
 .calc-judge{font-size:.8rem;font-weight:700;height:18px;line-height:18px;text-align:center;}
-.calc-judge.ok{color:#15803D;}
-.calc-judge.ng{color:#B91C1C;}
+.calc-judge.ok{color:var(--green);}
+.calc-judge.ng{color:var(--red);}
 .calc-total-val{font-size:.85rem;font-weight:700;color:var(--on);margin-right:.35rem;}
 
 /* テンキーパネル */
@@ -184,7 +209,7 @@ html,body{height:100%;background:var(--bg);font-family:"Hiragino Kaku Gothic Pro
 .nk:active{background:var(--line);}
 .nk.del{font-size:1rem;color:var(--muted);}
 .nk.ok-key{background:var(--accent);color:#fff;font-size:.95rem;}
-.nk.ok-key:active{background:#1558c0;}
+.nk.ok-key:active{background:var(--ok-key-active);}
 
 /* BOTTOM BAR */
 .bot-bar{
@@ -232,6 +257,8 @@ html,body{height:100%;background:var(--bg);font-family:"Hiragino Kaku Gothic Pro
 </style>
 </head>
 <body>
+
+<button class="theme-btn" id="btn-theme" onclick="toggleTheme()">🌙</button>
 
 <!-- NUMPAD OVERLAY -->
 <div id="numpad-overlay" onclick="closeNumpad()">
@@ -314,6 +341,32 @@ html,body{height:100%;background:var(--bg);font-family:"Hiragino Kaku Gothic Pro
 </div>
 
 <script>
+// ---- ダーク/ライトテーマ切替 ----
+function applyTheme(t){
+  const root=document.documentElement;
+  const btn=document.getElementById('btn-theme');
+  if(t==='dark'){
+    root.setAttribute('data-theme','dark');
+    btn.textContent='☀️';
+    document.querySelector('meta[name="theme-color"]').setAttribute('content','#17181C');
+  } else {
+    root.removeAttribute('data-theme');
+    btn.textContent='🌙';
+    document.querySelector('meta[name="theme-color"]').setAttribute('content','#1D6AE5');
+  }
+}
+function toggleTheme(){
+  const isDark=document.documentElement.getAttribute('data-theme')==='dark';
+  const next=isDark?'light':'dark';
+  applyTheme(next);
+  try{ localStorage.setItem('mmse_theme',next); }catch(e){}
+}
+(function(){
+  let saved='light';
+  try{ saved=localStorage.getItem('mmse_theme')||'light'; }catch(e){}
+  applyTheme(saved);
+})();
+
 const SECS = [
   { label:'時間の見当識', items:[
     {id:'t1',q:'今年',      type:'check'},
